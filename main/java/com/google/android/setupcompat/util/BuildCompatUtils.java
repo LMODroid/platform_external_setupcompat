@@ -83,7 +83,6 @@ public final class BuildCompatUtils {
    * @return Whether the current OS version is higher or equal to U.
    */
   public static boolean isAtLeastU() {
-    System.out.println("Build.VERSION.CODENAME=" + Build.VERSION.CODENAME);
     return (Build.VERSION.CODENAME.equals("REL") && Build.VERSION.SDK_INT >= 34)
         || (Build.VERSION.CODENAME.length() == 1
             && Build.VERSION.CODENAME.charAt(0) >= 'U'
