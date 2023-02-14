@@ -74,7 +74,7 @@ public final class BuildCompatUtils {
    *   <li>For current Android release: while new API is not finalized yet (CODENAME =
    *       "UpsideDownCake", SDK_INT = 33)
    *   <li>For current Android release: when new API is finalized (CODENAME = "REL", SDK_INT = 34)
-   *   <li>For next Android release (CODENAME = "V", SDK_INT = 35+)
+   *   <li>For next Android release (CODENAME = "VanillaIceCream", SDK_INT = 35+)
    * </ul>
    *
    * <p>Note that Build.VERSION_CODES.T cannot be used here until final SDK is available in all
@@ -84,10 +84,18 @@ public final class BuildCompatUtils {
    */
   public static boolean isAtLeastU() {
     return (Build.VERSION.CODENAME.equals("REL") && Build.VERSION.SDK_INT >= 34)
-        || (Build.VERSION.CODENAME.length() == 1
-            && Build.VERSION.CODENAME.charAt(0) >= 'U'
-            && Build.VERSION.CODENAME.charAt(0) <= 'Z')
-        || (Build.VERSION.CODENAME.equals("UpsideDownCake") && Build.VERSION.SDK_INT >= 33);
+      || isAtLeastPreReleaseCodename("UpsideDownCake");
+  }
+
+  private static boolean isAtLeastPreReleaseCodename(String codename) {
+    // Special case "REL", which means the build is not a pre-release build.
+    if (Build.VERSION.CODENAME.equals("REL")) {
+      return false;
+    }
+
+    // Otherwise lexically compare them. Return true if the build codename is equal to or
+    // greater than the requested codename.
+    return Build.VERSION.CODENAME.compareTo(codename) >= 0;
   }
 
   private BuildCompatUtils() {}
