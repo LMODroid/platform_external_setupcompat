@@ -22,13 +22,10 @@ import com.google.android.setupcompat.internal.Preconditions;
 import com.google.android.setupcompat.internal.SetupCompatServiceInvoker;
 import com.google.android.setupcompat.logging.internal.MetricBundleConverter;
 import com.google.android.setupcompat.logging.internal.SetupMetricsLoggingConstants.MetricType;
-import com.google.android.setupcompat.util.Logger;
 import java.util.concurrent.TimeUnit;
 
 /** SetupMetricsLogger provides an easy way to log custom metrics to SetupWizard. */
 public class SetupMetricsLogger {
-
-  private static final Logger LOG = new Logger("SetupMetricsLogger");
 
   /** Logs an instance of {@link CustomEvent} to SetupWizard. */
   public static void logCustomEvent(@NonNull Context context, @NonNull CustomEvent customEvent) {
@@ -73,23 +70,5 @@ public class SetupMetricsLogger {
         .logMetricEvent(
             MetricType.DURATION_EVENT,
             MetricBundleConverter.createBundleForLoggingTimer(timerName, timeInMillis));
-  }
-
-  /**
-   * Logs setup collection metrics (go/suw-metrics-collection-api)
-   */
-  public static void logMetrics(
-      @NonNull Context context, @NonNull ScreenKey screenKey, @NonNull SetupMetric... metrics) {
-    Preconditions.checkNotNull(context, "Context cannot be null.");
-    Preconditions.checkNotNull(screenKey, "ScreenKey cannot be null.");
-    Preconditions.checkNotNull(metrics, "SetupMetric cannot be null.");
-
-    for (SetupMetric metric : metrics) {
-      LOG.atDebug("Log metric: " + screenKey + ", " + metric);
-
-      SetupCompatServiceInvoker.get(context).logMetricEvent(
-          MetricType.SETUP_COLLECTION_EVENT,
-          MetricBundleConverter.createBundleForLoggingSetupMetric(screenKey, metric));
-    }
   }
 }
