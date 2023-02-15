@@ -73,6 +73,7 @@ public class FooterBarMixin implements Mixin {
   @VisibleForTesting final boolean applyPartnerResources;
   @VisibleForTesting final boolean applyDynamicColor;
   @VisibleForTesting final boolean useFullDynamicColor;
+  @VisibleForTesting final boolean footerButtonAlignEnd;
 
   @VisibleForTesting public LinearLayout buttonContainer;
   private FooterButton primaryButton;
@@ -206,6 +207,8 @@ public class FooterBarMixin implements Mixin {
         a.getColor(R.styleable.SucFooterBarMixin_sucFooterBarPrimaryFooterBackground, 0);
     footerBarSecondaryBackgroundColor =
         a.getColor(R.styleable.SucFooterBarMixin_sucFooterBarSecondaryFooterBackground, 0);
+    footerButtonAlignEnd =
+        a.getBoolean(R.styleable.SucFooterBarMixin_sucFooterBarButtonAlignEnd, false);
 
     int primaryBtn =
         a.getResourceId(R.styleable.SucFooterBarMixin_sucFooterBarPrimaryFooterButton, 0);
@@ -234,7 +237,7 @@ public class FooterBarMixin implements Mixin {
       return PartnerConfigHelper.get(context)
           .getBoolean(context, PartnerConfig.CONFIG_FOOTER_BUTTON_ALIGNED_END, false);
     } else {
-      return false;
+      return footerButtonAlignEnd;
     }
   }
 
@@ -617,7 +620,7 @@ public class FooterBarMixin implements Mixin {
     return overrideTheme;
   }
 
-  @VisibleForTesting
+  /** Returns the {@link LinearLayout} of button container. */
   public LinearLayout getButtonContainer() {
     return buttonContainer;
   }
