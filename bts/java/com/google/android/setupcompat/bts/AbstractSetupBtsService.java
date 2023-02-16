@@ -108,7 +108,14 @@ public abstract class AbstractSetupBtsService extends Service {
           + "3e51e5dd7b66787bef12fe97fba484c423fb4ff8cc494c02f0f5051612ff6529393e8e46eac5bb21f27"
           + "7c151aa5f2aa627d1e89da70ab6033569de3b9897bfff7ca9da3e1243f60b";
 
+  @VisibleForTesting boolean allowDebugKeys = false;
+
   @VisibleForTesting IBtsTaskServiceCallback callback;
+
+  /** Allow debug signature calling app when developing stage. */
+  protected void setAllowDebugKeys(boolean allowed) {
+    allowDebugKeys = allowed;
+  }
 
   @Nullable
   @Override
@@ -156,7 +163,10 @@ public abstract class AbstractSetupBtsService extends Service {
     LOG.atDebug("onTaskFinished callback " + ((callback == null) ? "is null." : "is not null."));
     if (callback != null) {
       try {
-        callback.onTaskFinished(Bundle.EMPTY);
+        Bundle metricBundle = new Bundle();
+        metricBundle.putBoolean(Constants.EXTRA_KEY_TASK_SUCCEED, succeed);
+        metricBundle.putString(Constants.EXTRA_KEY_TASK_FAILED_REASON, failedReason);
+        callback.onTaskFinished(metricBundle);
       } catch (RemoteException e) {
         LOG.e(
             "[" + this.getClass().getSimpleName() + "] Fail to invoke remove method onJobFinished");
@@ -225,7 +235,8 @@ public abstract class AbstractSetupBtsService extends Service {
   @VisibleForTesting
   boolean verifyCallingPackageName() {
     String packageName = getPackageManager().getNameForUid(Binder.getCallingUid());
-    if (SETUP_WIZARD_PACKAGE_NAME.equals(packageName) || BTS_STARTER_FOR_TEST.equals(packageName)) {
+    if (SETUP_WIZARD_PACKAGE_NAME.equals(packageName)
+        || (allowDebugKeys && BTS_STARTER_FOR_TEST.equals(packageName))) {
       LOG.atDebug("Package name match to SetupWizard");
       return true;
     } else {
@@ -242,9 +253,11 @@ public abstract class AbstractSetupBtsService extends Service {
         PackageInfo info =
             getPackageManager()
                 .getPackageInfo(packageName, PackageManager.GET_SIGNING_CERTIFICATES);
+
         for (Signature signature : info.signingInfo.getApkContentsSigners()) {
           if (SETUP_WIZARD_RELEASE_CERTIFICATE_STRING.equals(signature.toCharsString())
-              || SETUP_WIZARD_DEBUG_CERTIFICATE_STRING.equals(signature.toCharsString())) {
+              || (allowDebugKeys
+                  && SETUP_WIZARD_DEBUG_CERTIFICATE_STRING.equals(signature.toCharsString()))) {
             return true;
           }
         }
