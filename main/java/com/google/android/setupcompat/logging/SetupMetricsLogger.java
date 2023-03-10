@@ -16,8 +16,10 @@
 
 package com.google.android.setupcompat.logging;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import androidx.annotation.NonNull;
+import androidx.annotation.VisibleForTesting;
 import com.google.android.setupcompat.internal.Preconditions;
 import com.google.android.setupcompat.internal.SetupCompatServiceInvoker;
 import com.google.android.setupcompat.logging.internal.MetricBundleConverter;
@@ -25,7 +27,10 @@ import com.google.android.setupcompat.logging.internal.SetupMetricsLoggingConsta
 import com.google.android.setupcompat.util.Logger;
 import java.util.concurrent.TimeUnit;
 
-/** SetupMetricsLogger provides an easy way to log custom metrics to SetupWizard. */
+/**
+ * SetupMetricsLogger provides an easy way to log custom metrics to SetupWizard.
+ * (go/suw-metrics-collection-api)
+ */
 public class SetupMetricsLogger {
 
   private static final Logger LOG = new Logger("SetupMetricsLogger");
@@ -76,7 +81,7 @@ public class SetupMetricsLogger {
   }
 
   /**
-   * Logs setup collection metrics (go/suw-metrics-collection-api)
+   * Logs setup collection metrics
    */
   public static void logMetrics(
       @NonNull Context context, @NonNull ScreenKey screenKey, @NonNull SetupMetric... metrics) {
@@ -92,4 +97,46 @@ public class SetupMetricsLogger {
           MetricBundleConverter.createBundleForLoggingSetupMetric(screenKey, metric));
     }
   }
+
+  /**
+   * A non-static method to log setup collection metrics calling
+   * {@link #logMetrics(Context, ScreenKey, SetupMetric...)} as the actual implementation. This
+   * function is useful when performing unit tests in caller's implementation.
+   * <p>
+   * For unit testing, caller uses {@link #setInstanceForTesting(SetupMetricsLogger)} to inject the
+   * mocked SetupMetricsLogger instance and use {@link SetupMetricsLogger#get(Context)} to get the
+   * SetupMetricsLogger. And verify the this function is called with expected parameters.
+   *
+   * @see #logMetrics(Context, ScreenKey, SetupMetric...)
+   */
+  public void logMetrics(@NonNull ScreenKey screenKey, @NonNull SetupMetric... metrics) {
+    SetupMetricsLogger.logMetrics(context, screenKey, metrics);
+  }
+
+  private SetupMetricsLogger(Context context) {
+    this.context = context;
+  }
+
+  private final Context context;
+
+  /** Use this function to get a singleton of {@link SetupMetricsLogger} */
+  public static synchronized SetupMetricsLogger get(Context context) {
+    if (instance == null) {
+      instance = new SetupMetricsLogger(context.getApplicationContext());
+    }
+
+    return instance;
+  }
+
+  @VisibleForTesting
+  public static void setInstanceForTesting(SetupMetricsLogger testInstance) {
+    instance = testInstance;
+  }
+
+  // The instance is coming from Application context which alive during the application activate and
+  // it's not depend on the activities life cycle, so we can avoid memory leak. However linter
+  // cannot distinguish Application context or activity context, so we add @SuppressLint to avoid
+  // lint error.
+  @SuppressLint("StaticFieldLeak")
+  private static SetupMetricsLogger instance;
 }
