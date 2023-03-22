@@ -256,7 +256,7 @@ public abstract class AbstractSetupBtsService extends Service {
 
         for (Signature signature : info.signingInfo.getApkContentsSigners()) {
           if (SETUP_WIZARD_RELEASE_CERTIFICATE_STRING.equals(signature.toCharsString())
-              || (allowDebugKeys
+              || (isAllowDebugKeysOrBuild()
                   && SETUP_WIZARD_DEBUG_CERTIFICATE_STRING.equals(signature.toCharsString()))) {
             return true;
           }
@@ -271,6 +271,10 @@ public abstract class AbstractSetupBtsService extends Service {
 
     LOG.w("Signature not match to SetupWizard");
     return false;
+  }
+
+  private boolean isAllowDebugKeysOrBuild() {
+    return Build.TYPE.equals("userdebug") || Build.TYPE.equals("eng") || allowDebugKeys;
   }
 
   @VisibleForTesting
