@@ -69,6 +69,9 @@ public class PartnerConfigHelper {
   public static final String IS_NEUTRAL_BUTTON_STYLE_ENABLED_METHOD = "isNeutralButtonStyleEnabled";
 
   @VisibleForTesting
+  public static final String IS_FONT_WEIGHT_ENABLED_METHOD = "isFontWeightEnabled";
+
+  @VisibleForTesting
   public static final String IS_EMBEDDED_ACTIVITY_ONE_PANE_ENABLED_METHOD =
       "isEmbeddedActivityOnePaneEnabled";
 
@@ -90,6 +93,8 @@ public class PartnerConfigHelper {
   @VisibleForTesting public static Bundle applyDynamicColorBundle = null;
 
   @VisibleForTesting public static Bundle applyNeutralButtonStyleBundle = null;
+
+  @VisibleForTesting public static Bundle applyFontWeightBundle = null;
 
   @VisibleForTesting public static Bundle applyEmbeddedActivityOnePaneBundle = null;
 
@@ -644,7 +649,7 @@ public class PartnerConfigHelper {
     return inputResourceEntry;
   }
 
-  // Check the embedded acitvity flag and replace the inputResourceEntry.resourceName &
+  // Check the embedded activity flag and replace the inputResourceEntry.resourceName &
   // inputResourceEntry.resourceId after U.
   ResourceEntry embeddedActivityResourceEntryDefaultValue(
       Context context, ResourceEntry inputResourceEntry) {
@@ -878,6 +883,29 @@ public class PartnerConfigHelper {
 
     return (applyNeutralButtonStyleBundle != null
         && applyNeutralButtonStyleBundle.getBoolean(IS_NEUTRAL_BUTTON_STYLE_ENABLED_METHOD, false));
+  }
+
+  /** Returns true if the SetupWizard supports the font weight customization during setup flow. */
+  public static boolean isFontWeightEnabled(@NonNull Context context) {
+    if (applyFontWeightBundle == null) {
+      try {
+        applyFontWeightBundle =
+            context
+                .getContentResolver()
+                .call(
+                    getContentUri(),
+                    IS_FONT_WEIGHT_ENABLED_METHOD,
+                    /* arg= */ null,
+                    /* extras= */ null);
+      } catch (IllegalArgumentException | SecurityException exception) {
+        Log.w(TAG, "Font weight supporting status unknown; return as false.");
+        applyFontWeightBundle = null;
+        return false;
+      }
+    }
+
+    return (applyFontWeightBundle != null
+        && applyFontWeightBundle.getBoolean(IS_FONT_WEIGHT_ENABLED_METHOD, true));
   }
 
   /**
